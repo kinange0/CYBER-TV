@@ -3,216 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- TODO: Set the document title to the name of your application -->
     <title>CYBER HUNTER TV</title>
-    <!-- build: fix-blank-screen-33d0f98 (relative ./assets paths + fetch-error shim) -->
-    <meta name="cyber-tv-build" content="fix-blank-screen-33d0f98-relative-assets-fetch-shim">
-    <meta name="description" content="burudika channel zote za azam" />
+    <meta name="description" content="burudika channel zote za azam">
     <meta name="author" content="Lovable" />
 
+    <!-- TODO: Update og:title to match your application name -->
+    
+    
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="CYBER HUNTER TV" />
-    <meta property="og:description" content="burudika channel zote za azam" />
+    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3e46f01c-83f0-4e89-aaed-48423aef174f?Expires=1775398101&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=c3VSZsbsjb9VcwzU9v8ErwcGHmD%2F4A%2BOKpQbmQJ%2BcDrs%2BJYP7Nl9VL9iJPoz%2BzZjjfG6zCZOF5eCsVGVxj75ntnIDXCoiQmAZXgaTN00gDz6xIbgOyMnw%2BahJLqgJSZOXrwiaJjp1iY%2BhBzPzmX9o7wSt6oeOd40I1%2FnHgghU%2FoYQLF9L3HAAtB%2FCv%2BuvUNnlK7VvzIz4azwTD7%2Fo3m3kJcSRBd%2BK%2FBTQocEZ%2BsxkWfd3G8gAB7VWtu0RFhpDeiWA9pOydh2ZoWIj3KYi2nf0h%2BxOuuV9H4MFYvuRB1nbBsgc%2FjShqvA1H1NM8sbPea0YbYn87rWeNKc0azrPmg%2FFQ%3D%3D">
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-
-    <!-- ==================== CYBER HUNTER TV — Personal Use Patch ==================== -->
-    <!-- Removes paywall popup / trial countdown without modifying the JS bundle -->
-    <script>
-    (function() {
-      try {
-        /*
-         * PAYWALL BYPASS STRATEGY:
-         *
-         * The app uses localStorage key "chtv_paywall_at" to track a 24-hour paywall window.
-         * Function kR() reads this key:  returns true if Date.now() - storedValue < 24h.
-         * Function _R() writes this key: localStorage.setItem("chtv_paywall_at", Date.now()).
-         *
-         * The paywall countdown (setInterval, 1s delay) calls _R() then m(true) to show the modal.
-         * We intercept BOTH:
-         *   1. Block all writes to "chtv_paywall_at"  → kR() always returns false (paywall inactive)
-         *   2. Block the countdown interval entirely  → _R() and m(true) never fire
-         */
-
-        // 1. Pre-seed the paywall timestamp to "0" (far in the past → kR returns false)
-        try { localStorage.setItem('chtv_paywall_at', '0'); } catch(e) {}
-
-        // 2. Intercept localStorage.setItem to block paywall timestamp writes
-        const _origSetItem = localStorage.setItem;
-        localStorage.setItem = function(key, value) {
-          if (String(key) === 'chtv_paywall_at') return; // silently ignore paywall timestamp
-          return _origSetItem.call(this, key, value);
-        };
-
-        // 3. Intercept setInterval to block the paywall countdown
-        //    The countdown callback contains both "_R()" (set paywall timestamp)
-        //    and "m(!0)" (show paywall modal) in the minified bundle.
-        //    We detect it by inspecting the callback's string representation.
-        const _origSetInterval = window.setInterval;
-        window.setInterval = function(callback, delay) {
-          try {
-            const src = String(callback);
-            if (src.indexOf('_R()') !== -1 && src.indexOf('m(!0)') !== -1) {
-              // This is the paywall countdown — block it
-              return 0; // fake interval ID
-            }
-          } catch(e) {}
-          return _origSetInterval.apply(this, arguments);
-        };
-
-        // Make bypass status available globally
-        window.CYBER_HUNTER_TV = {
-          paywallBlocked: true,
-          bypassMethod: 'localStorage + setInterval intercept',
-          // Token override helper (see settings panel below)
-          setToken: function(token) { localStorage.setItem('chtv_cdn_token_override', token); },
-          getToken: function() { return localStorage.getItem('chtv_cdn_token_override'); },
-          clearToken: function() { localStorage.removeItem('chtv_cdn_token_override'); },
-          getTokenExpiry: function() {
-            try {
-              const cdn = JSON.parse(localStorage.getItem('chtv_cdn_token') || '{}');
-              return cdn.exp || null;
-            } catch(e) { return null; }
-          }
-        };
-      } catch(e) {
-        // Fail silently — paywall bypass is non-critical
-        console.warn('[CHTV] Paywall bypass init failed:', e);
-      }
-    })();
-    </script>
-
-    <!-- DEPLOY FIX: resilient fetch shim + relative asset paths.
-         - relative ./assets/ fixes GitHub Pages subdirectory 404 (paths were absolute /assets/).
-         - fetch shim catches backend-fetch failures (CORS/origin) as empty JSON so
-           React still renders the UI shell instead of crashing to a blank white screen.
-           No-op (transparent) when fetch succeeds, so localhost behavior is unchanged. -->
-    <script>
-    (function() {
-      try {
-        const _f = window.fetch;
-        window.fetch = function(u, o) {
-          return _f.call(this, u, o).catch(function(e) {
-            const s = typeof u === 'string' ? u : (u && u.url ? u.url : '');
-            console.warn('[CHTV-shim] fetch failed, returning empty JSON fallback:', s, e && e.message);
-            return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
-          });
-        };
-      } catch (e) {}
-    })();
-    </script>
-    <script type="module" crossorigin src="./assets/index-BID-wCeL.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BTWBMNjG.css" />
-  </head>
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Lovable" />
+    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3e46f01c-83f0-4e89-aaed-48423aef174f?Expires=1775398101&amp;GoogleAccessId=go-api-on-aws%40gpt-engineer-390607.iam.gserviceaccount.com&amp;Signature=c3VSZsbsjb9VcwzU9v8ErwcGHmD%2F4A%2BOKpQbmQJ%2BcDrs%2BJYP7Nl9VL9iJPoz%2BzZjjfG6zCZOF5eCsVGVxj75ntnIDXCoiQmAZXgaTN00gDz6xIbgOyMnw%2BahJLqgJSZOXrwiaJjp1iY%2BhBzPzmX9o7wSt6oeOd40I1%2FnHgghU%2FoYQLF9L3HAAtB%2FCv%2BuvUNnlK7VvzIz4azwTD7%2Fo3m3kJcSRBd%2BK%2FBTQocEZ%2BsxkWfd3G8gAB7VWtu0RFhpDeiWA9pOydh2ZoWIj3KYi2nf0h%2BxOuuV9H4MFYvuRB1nbBsgc%2FjShqvA1H1NM8sbPea0YbYn87rWeNKc0azrPmg%2FFQ%3D%3D">
+    
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <meta property="og:title" content="CYBER HUNTER TV">
+  <meta name="twitter:title" content="CYBER HUNTER TV">
+  <meta property="og:description" content="burudika channel zote za azam">
+  <meta name="twitter:description" content="burudika channel zote za azam">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <!-- Preload players so channels start instantly -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+  <script type="module" crossorigin src="/assets/index-_gnz_AHU.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CCWvf0C0.css">
+</head>
 
   <body>
     <div id="root"></div>
-
-    <!-- ==================== Token Replacement Settings Panel ==================== -->
-    <!-- Toggle with: Ctrl+Shift+T -->
-    <!-- Stores CDN token override in localStorage key: "chtv_cdn_token_override" -->
-    <div id="chtv-settings-panel"
-         style="display:none;position:fixed;top:0;right:0;z-index:99999;
-                background:#0f0f23;border:1px solid #00ff88;font-family:'Courier New',monospace;
-                font-size:11px;color:#c8e6c9;padding:14px;width:360px;max-height:90vh;
-                overflow-y:auto;border-radius:0 0 0 0;box-shadow:-4px 0 30px rgba(0,255,136,0.15);">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="margin:0;font-size:13px;font-weight:bold;">CHTV — Token Settings</h3>
-        <span style="cursor:pointer;font-size:14px;" onclick="document.getElementById('chtv-settings-panel').style.display='none';">✕</span>
-      </div>
-
-      <div style="margin-bottom:8px;font-size:10px;color:#888;border-bottom:1px solid #333;padding-bottom:8px;">
-        Status: <span style="color:#00ff88;">✓ Paywall BLOCKED</span> | Auth: <span style="color:#00ff88;">Bypassed</span>
-      </div>
-
-      <!-- CDN Token Override -->
-      <div style="margin-bottom:12px;">
-        <label style="display:block;font-size:10px;color:#aaa;margin-bottom:4px;">CDN Token Override (placeholder):</label>
-        <textarea id="chtv-token-input" placeholder="Paste CDN token (JWT) here..."
-                  style="width:100%;height:80px;background:#000;color:#00ff88;border:1px solid #333;
-                         font-family:monospace;font-size:9px;padding:6px;box-sizing:border-box;
-                         resize:none;white-space:pre-wrap;overflow-wrap:anywhere;"></textarea>
-        <div style="font-size:9px;color:#666;margin-top:2px;">Saves to: localStorage["chtv_cdn_token_override"]</div>
-      </div>
-
-      <!-- Current Token Info -->
-      <div style="margin-bottom:12px;padding:8px;background:#111;border-radius:4px;">
-        <div style="font-size:9px;color:#888;margin-bottom:4px;">Current Token Info (from /cdn-token endpoint):</div>
-        <div id="chtv-token-info" style="font-size:10px;color:#aaa;">Not fetched yet. App fetches fresh tokens at runtime.</div>
-      </div>
-
-      <!-- Buttons -->
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button id="chtv-save-token"
-                style="flex:1;background:#1a1a2e;border:1px solid #00ff88;color:#00ff88;padding:6px;
-                       cursor:pointer;font-family:monospace;font-size:10px;border-radius:4px;">
-          Save Token
-        </button>
-        <button id="chtv-clear-token"
-                style="flex:1;background:#1a1a2e;border:1px solid #ff4444;color:#ff4444;padding:6px;
-                       cursor:pointer;font-family:monospace;font-size:10px;border-radius:4px;">
-          Clear
-        </button>
-      </div>
-
-      <!-- Footer -->
-      <div style="font-size:8px;color:#555;border-top:1px solid #333;padding-top:8px;">
-        <div>CYBER HUNTER TV — Personal Single-User Copy</div>
-        <div>Backend: jxwnkhnqbynaayhtjyzl.supabase.co</div>
-        <div>CDN: cdnedgch2.azamtvltd.co.tz</div>
-        <div>Press ESC to hide • Ctrl+Shift+T to toggle</div>
-      </div>
-    </div>
-
-    <script>
-    (function() {
-      // Auto-load any existing saved token into the textarea
-      const input = document.getElementById('chtv-token-input');
-      const saved = localStorage.getItem('chtv_cdn_token_override');
-      if (saved) input.value = saved;
-
-      // Save token button
-      document.getElementById('chtv-save-token').addEventListener('click', function() {
-        const token = input.value.trim();
-        if (token) {
-          localStorage.setItem('chtv_cdn_token_override', token);
-          alert('✓ Token saved!\nKey: chtv_cdn_token_override');
-        } else {
-          alert('✗ Please enter a token first.');
-        }
-      });
-
-      // Clear token button
-      document.getElementById('chtv-clear-token').addEventListener('click', function() {
-        input.value = '';
-        localStorage.removeItem('chtv_cdn_token_override');
-        alert('✓ Token cleared.');
-      });
-
-      // Keyboard shortcuts: Ctrl+Shift+T = toggle panel, ESC = hide panel
-      document.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.shiftKey && e.key === 't') {
-          e.preventDefault();
-          const p = document.getElementById('chtv-settings-panel');
-          p.style.display = (p.style.display === 'none') ? 'block' : 'none';
-        }
-        if (e.key === 'Escape') {
-          document.getElementById('chtv-settings-panel').style.display = 'none';
-        }
-      });
-
-      // Try to display current token info
-      const info = document.getElementById('chtv-token-info');
-      try {
-        const cdn = JSON.parse(localStorage.getItem('chtv_cdn_token') || '{}');
-        if (cdn.token && cdn.exp) {
-          const expDate = new Date(cdn.exp * 1000);
-          info.innerHTML = 'Token expires: ' + expDate.toLocaleString() +
-                           (Date.now()/1000 > cdn.exp ? '<br><span style="color:#ff4444">⚠️ EXPIRED</span>' : '<br><span style="color:#00ff88">✓ Valid</span>');
-        }
-      } catch(e) {
-        info.textContent = 'Reading from data/cdn.json: exp ~ Aug 3 2026';
-      }
-    })();
-    </script>
   </body>
 </html>
